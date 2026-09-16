@@ -33,6 +33,16 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="also render the shuffled wiring (default for pulse35)",
     )
+
+    filt = sub.add_parser("filter", help="run the Johnston filter on a mono wav")
+    filt.add_argument("--in", dest="inp", type=Path, required=True)
+    filt.add_argument("--out", type=Path, required=True)
+    filt.add_argument("--shuffle", action="store_true")
+    filt.add_argument("--wet", type=float, default=0.85)
+
+    serve = sub.add_parser("serve", help="serve the browser Johnston-filter demo")
+    serve.add_argument("--port", type=int, default=8765)
+    serve.add_argument("--no-browser", action="store_true")
     return p
 
 
@@ -81,6 +91,42 @@ def main(argv: list[str] | None = None) -> int:
             results.append(_write_take(shuffled, args.out, f"{args.stimulus}_shuffled"))
         print(json.dumps(results, indent=2))
         print(f"wrote {args.out.resolve()}")
+        return 0
+    if args.cmd == "filter":
+        from .filter import johnston_filter
+        from .wavutil import read_wav, write_wav as write
+
+        audio, rate = read_wav(args.inp)
+        wet, tel = johnston_filter(audio, sample_rate=rate, wet=args.wet, shuffle=args.shuffle)
+        write(args.out, wet, rate)
+        print(json.dumps({"out": str(args.out), **tel}, indent=2))
+        return 0
+    if args.cmd == "serve":
+        import http.server
+        import socketserver
+        import threading
+        import webbrowser
+
+        web = Path(__file__).resolve().parents[2] / "web"
+        if not (web / "index.html").exists():
+            raise SystemExit(f"demo not found at {web}")
+
+        class Handler(http.server.SimpleHTTPRequestHandler):
+            def __init__(self, *a, **k):
+                super().__init__(*a, directory=str(web), **k)
+
+        socketserver.TCPServer.allow_reuse_address = True
+        httpd = socketserver.TCPServer(("127.0.0.1", args.port), Handler)
+        url = f"http://127.0.0.1:{args.port}/"
+        print(f"Johnston filter demo at {url}  (ctrl+c to stop)")
+        if not args.no_browser:
+            threading.Timer(0.4, lambda: webbrowser.open(url)).start()
+        try:
+            httpd.serve_forever()
+        except KeyboardInterrupt:
+            pass
+        finally:
+            httpd.server_close()
         return 0
     raise SystemExit(f"unknown command {args.cmd}")
 

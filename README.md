@@ -65,6 +65,26 @@ Other stimuli: `pulse15` (too-fast IPI), `sine` (sine-song stand-in), `clicks`.
 python -m pytest
 ```
 
+## Browser Johnston filter
+
+Two copies of the same 12-neuron motif run in an AudioWorklet and treat incoming audio as particle velocity into Johnston's organ. Pulse-pool rate ducks the dry signal; sine-pool rate opens a low shelf. The two flies can be independent, cross-coupled, antagonistic, or chained (B hears A's wet output).
+
+```bash
+python -m flybrain_audio serve
+```
+
+Opens `http://127.0.0.1:8765/`. Sources: synthetic pulse/sine song, microphone, **tab capture** (the honest way to filter a YouTube tab — this page cannot fetch `youtube.com` itself), or a local file.
+
+Talk to the patchbay with plain commands (`cross couple`, `shuffle A`, `lesion aln`, `capture tab`) without a model. Optionally load **MiniCPM5-1B or 2B** in the same tab via wllama (llama.cpp WASM / WebGPU). The 2B Q4 download is ~1.56 GB; the filter does not need it. The model only sets parameters — it never sits in the audio thread.
+
+The 12-neuron circuit is too small to bother with WebGPU. WebGPU is for MiniCPM (and, later, a real FlyWire extract). Two interacting brains are just two LIF graphs plus a coupling current, which is the interesting bit.
+
+Offline cousin:
+
+```bash
+python -m flybrain_audio filter --in song.wav --out wet.wav
+```
+
 ## What is real vs invented in v0.1
 
 | Piece | Status |

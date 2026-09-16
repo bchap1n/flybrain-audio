@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Johnston filter — dual fly hearing</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header>
+      <p class="kicker">flybrain-audio · experiment 1</p>
+      <h1>Johnston filter</h1>
+      <p class="lede">
+        Two toy courtship-hearing circuits listen to the same room. Pulse-pool rate ducks the dry
+        signal; sine-pool rate opens a low shelf. Wiring is a motif, not a measured extract.
+        Shuffle and lesion are the controls.
+      </p>
+    </header>
+
+    <main>
+      <section class="panel">
+        <h2>Source</h2>
+        <p class="hint">
+          YouTube is a <em>tab you share</em>, not a URL this page can fetch. Chrome: Capture tab
+          → pick the YouTube tab → enable audio.
+        </p>
+        <div class="row">
+          <button id="src-pulse" type="button">Pulse song</button>
+          <button id="src-sine" type="button">Sine song</button>
+          <button id="src-mic" type="button">Microphone</button>
+          <button id="src-tab" type="button">Capture tab</button>
+          <button id="src-file" type="button">Audio file</button>
+          <input id="file" type="file" accept="audio/*,video/*" hidden />
+        </div>
+        <video id="preview" playsinline autoplay></video>
+        <p id="status" class="status">idle</p>
+      </section>
+
+      <section class="panel brains">
+        <h2>Two listeners</h2>
+        <canvas id="brain" width="240" height="168" aria-label="two fly motifs"></canvas>
+        <div class="meters">
+          <div>
+            <span>A pulse</span>
+            <i><b id="meterAPulse"></b></i>
+            <span>A sine</span>
+            <i><b id="meterASine"></b></i>
+          </div>
+          <div>
+            <span>B pulse</span>
+            <i><b id="meterBPulse"></b></i>
+            <span>B sine</span>
+            <i><b id="meterBSine"></b></i>
+          </div>
+        </div>
+        <label>
+          coupling
+          <select id="mode">
+            <option value="stereo">stereo — independent</option>
+            <option value="cross" selected>cross — each pulse injects into the other</option>
+            <option value="antagonist">antagonist — pulse of one suppresses sine of the other</option>
+            <option value="series">series — B hears A's wet output</option>
+          </select>
+        </label>
+      </section>
+
+      <section class="panel">
+        <h2>Filter</h2>
+        <label>wet <input id="wet" type="range" min="0" max="1" step="0.01" /><span id="wetVal"></span></label>
+        <label>pulse duck <input id="pulseDepth" type="range" min="0" max="1" step="0.01" /><span id="pulseVal"></span></label>
+        <label>sine warmth <input id="sineWarmth" type="range" min="0" max="1" step="0.01" /><span id="sineVal"></span></label>
+        <label>A → B <input id="coupleAB" type="range" min="0" max="1" step="0.01" /><span id="cabVal"></span></label>
+        <label>B → A <input id="coupleBA" type="range" min="0" max="1" step="0.01" /><span id="cbaVal"></span></label>
+        <label>
+          lesion A
+          <select id="lesionA">
+            <option value="none">none</option>
+            <option value="aln">aLN(al)</option>
+            <option value="apn1">aPN1</option>
+            <option value="pc1">pC1</option>
+          </select>
+        </label>
+        <label class="check"><input id="shuffleA" type="checkbox" /> shuffle A</label>
+        <label class="check"><input id="shuffleB" type="checkbox" /> shuffle B</label>
+      </section>
+
+      <section class="panel chat">
+        <h2>Talk to the patchbay</h2>
+        <p class="hint">
+          Commands work immediately: “cross couple”, “shuffle A”, “lesion aln”, “capture tab”.
+          MiniCPM5 is optional and stays in this browser. 2B is ~1.56&nbsp;GB; 1B is ~657&nbsp;MB.
+        </p>
+        <div class="row">
+          <button id="load-1b" type="button">Load MiniCPM5-1B</button>
+          <button id="load-2b" type="button">Load MiniCPM5-2B</button>
+        </div>
+        <div id="log" class="log"></div>
+        <form id="chat-form">
+          <input id="chat-input" autocomplete="off" placeholder="couple them, then capture a YouTube tab" />
+          <button type="submit">Send</button>
+        </form>
+      </section>
+    </main>
+
+    <footer>
+      Shiu LIF constants. Baker / Vaughan / Zhou pathway names. Not a fly.
+      <a href="https://github.com/bchap1n/flybrain-audio">source</a>
+    </footer>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

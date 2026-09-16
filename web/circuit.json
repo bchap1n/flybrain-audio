@@ -1,0 +1,48 @@
+{
+  "provenance": "toy auditory motif inspired by JO-B → aLN(al)/aPN1 → vPN1 → pC1 (Baker 2022, Vaughan 2014, Zhou 2015). Not measured synapses.",
+  "dt_ms": 0.5,
+  "params": {
+    "v_rest_mv": -52.0,
+    "v_reset_mv": -52.0,
+    "v_thresh_mv": -45.0,
+    "tau_m_ms": 20.0,
+    "t_ref_ms": 2.2
+  },
+  "names": [
+    "JO_B_0", "JO_B_1", "JO_B_2",
+    "JO_C_0", "JO_C_1",
+    "aLN_al", "aPN1", "vPN1", "pC1",
+    "pulse_pool", "sine_pool", "B1"
+  ],
+  "roles": {
+    "jo_pulse": ["JO_B_0", "JO_B_1", "JO_B_2"],
+    "jo_sine": ["JO_C_0", "JO_C_1"],
+    "pulse_out": ["pulse_pool", "B1", "pC1"],
+    "sine_out": ["sine_pool"],
+    "kick": ["pulse_pool"],
+    "hat": ["B1"],
+    "pad": ["sine_pool"],
+    "accent": ["pC1"]
+  },
+  "synapses": [
+    {"pre": "JO_B_0", "post": "aPN1", "weight_mv": 4.0, "delay_ms": 1.8},
+    {"pre": "JO_B_1", "post": "aPN1", "weight_mv": 4.0, "delay_ms": 1.8},
+    {"pre": "JO_B_2", "post": "aPN1", "weight_mv": 3.5, "delay_ms": 1.8},
+    {"pre": "JO_B_0", "post": "aLN_al", "weight_mv": 3.5, "delay_ms": 1.8},
+    {"pre": "JO_B_1", "post": "aLN_al", "weight_mv": 3.5, "delay_ms": 1.8},
+    {"pre": "JO_B_2", "post": "aLN_al", "weight_mv": 3.0, "delay_ms": 1.8},
+    {"pre": "aLN_al", "post": "aPN1", "weight_mv": -8.0, "delay_ms": 20.0},
+    {"pre": "aLN_al", "post": "vPN1", "weight_mv": -3.0, "delay_ms": 22.0},
+    {"pre": "aPN1", "post": "vPN1", "weight_mv": 8.0, "delay_ms": 2.0},
+    {"pre": "vPN1", "post": "pC1", "weight_mv": 8.0, "delay_ms": 2.0},
+    {"pre": "pC1", "post": "pulse_pool", "weight_mv": 8.0, "delay_ms": 1.8},
+    {"pre": "pC1", "post": "B1", "weight_mv": 8.0, "delay_ms": 1.8},
+    {"pre": "B1", "post": "pulse_pool", "weight_mv": 4.0, "delay_ms": 1.8},
+    {"pre": "JO_C_0", "post": "sine_pool", "weight_mv": 8.0, "delay_ms": 1.8},
+    {"pre": "JO_C_1", "post": "sine_pool", "weight_mv": 8.0, "delay_ms": 1.8},
+    {"pre": "JO_C_0", "post": "aLN_al", "weight_mv": 1.5, "delay_ms": 1.8},
+    {"pre": "sine_pool", "post": "pC1", "weight_mv": 2.0, "delay_ms": 3.0},
+    {"pre": "pulse_pool", "post": "sine_pool", "weight_mv": -3.0, "delay_ms": 4.0},
+    {"pre": "aPN1", "post": "sine_pool", "weight_mv": -1.5, "delay_ms": 2.0}
+  ]
+}

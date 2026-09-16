@@ -30,6 +30,8 @@ If shuffle and motif sound the same, the encoder/decoder is doing all the musica
 
 ## 1. Johnston filter (audio FX, not a drum machine)
 
+**Status:** toy version implemented — Python `flybrain-audio filter` and the browser demo (`flybrain-audio serve`). Dual-brain coupling lives in `web/`. MiniCPM5 is an optional in-tab patchbay, not part of the audio callback.
+
 **Why it is novel.** Almost every viral fly demo *reads* motor neurons. Almost none *listen* with the hearing pathway. Baker et al. 2022 mapped JO → AMMC → WED/VLP as a heterarchy: pulse-preferring and sine-preferring cells talk to each other. That is a filter topology, not a classifier.
 
 **Setup.**
