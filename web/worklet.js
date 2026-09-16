@@ -40,6 +40,7 @@ class LifBrain {
     this.queue = Array.from({ length: this.buf }, () => new Float64Array(this.n));
     this.head = 0;
     this.lesion = "none";
+    this.shuffled = false;
     this.pulseEma = 0;
     this.sineEma = 0;
     this.lastSpikes = 0;
@@ -52,6 +53,10 @@ class LifBrain {
   }
 
   setShuffle(on) {
+    on = !!on;
+    if (on === this.shuffled) return;
+    this.shuffled = on;
+    this.post = CIRCUIT.synapses.map((s) => s[1]);
     this.w = this.w0.slice();
     if (!on) return;
     const posts = this.post.slice();
@@ -136,7 +141,8 @@ class JohnstonProcessor extends AudioWorkletProcessor {
     this.a = new LifBrain(1);
     this.b = new LifBrain(2);
     this.acc = 0;
-    this.prevAbs = 0;
+    this.winA = { onset: 0, env: 0, band: 0, n: 0 };
+    this.winB = { onset: 0, env: 0, band: 0, n: 0 };
     this.lpLoA = new OnePole();
     this.lpHiA = new OnePole();
     this.lpLoB = new OnePole();
@@ -177,18 +183,6 @@ class JohnstonProcessor extends AudioWorkletProcessor {
     }
   }
 
-  _drives(sample, lpLo, lpHi) {
-    const abs = Math.abs(sample);
-    this.envA = 0; // placeholder, per-channel env kept on processor
-    const env = abs;
-    const onset = Math.max(0, env - this.prevAbs);
-    this.prevAbs = env;
-    const lo = lpLo.process(sample, 80, sampleRate);
-    const hi = lpHi.process(sample, 280, sampleRate);
-    const band = Math.abs(hi - lo);
-    return { onset, env, band };
-  }
-
   _inject(iExt, drives, extra, joGain, sineGain) {
     iExt.fill(0);
     const pulse = joGain * Math.min(1, drives.onset * 8 + drives.env * 0.4);
@@ -220,12 +214,14 @@ class JohnstonProcessor extends AudioWorkletProcessor {
     for (let i = 0; i < n; i++) {
       const xL = leftIn[i] || 0;
       const xR = rightIn[i] || 0;
+      const dBsrc = p.mode === "series" ? (i > 0 ? leftOut[i - 1] : xL) : xR;
+      this._accumulate(this.winA, xL, this.lpLoA, this.lpHiA, "a");
+      this._accumulate(this.winB, dBsrc, this.lpLoB, this.lpHiB, "b");
       this.acc += 1;
       if (this.acc >= samplesPerStep) {
         this.acc -= samplesPerStep;
-        const dA = this._channelDrive(xL, this.lpLoA, this.lpHiA, "a");
-        const dBsrc = p.mode === "series" ? leftOut[Math.max(0, i - 1)] || xL : xR;
-        const dB = this._channelDrive(dBsrc, this.lpLoB, this.lpHiB, "b");
+        const dA = this._flush(this.winA);
+        const dB = this._flush(this.winB);
         const extraB = {
           target: p.coupleTarget,
           mv: p.coupleAB * this.a.pulseEma * 40,
@@ -269,20 +265,27 @@ class JohnstonProcessor extends AudioWorkletProcessor {
     return true;
   }
 
-  _channelDrive(sample, lpLo, lpHi, which) {
+  _accumulate(win, sample, lpLo, lpHi, which) {
     const abs = Math.abs(sample);
-    if (which === "a") {
-      const onset = Math.max(0, abs - (this._prevA || 0));
-      this._prevA = abs;
-      const lo = lpLo.process(sample, 80, sampleRate);
-      const hi = lpHi.process(sample, 280, sampleRate);
-      return { onset, env: abs, band: Math.abs(hi - lo) };
-    }
-    const onset = Math.max(0, abs - (this._prevB || 0));
-    this._prevB = abs;
+    const prev = which === "a" ? this._prevA || 0 : this._prevB || 0;
+    if (which === "a") this._prevA = abs;
+    else this._prevB = abs;
     const lo = lpLo.process(sample, 80, sampleRate);
     const hi = lpHi.process(sample, 280, sampleRate);
-    return { onset, env: abs, band: Math.abs(hi - lo) };
+    win.onset = Math.max(win.onset, Math.max(0, abs - prev));
+    win.env += abs;
+    win.band += Math.abs(hi - lo);
+    win.n += 1;
+  }
+
+  _flush(win) {
+    const n = Math.max(1, win.n);
+    const out = { onset: win.onset, env: win.env / n, band: win.band / n };
+    win.onset = 0;
+    win.env = 0;
+    win.band = 0;
+    win.n = 0;
+    return out;
   }
 }
 
