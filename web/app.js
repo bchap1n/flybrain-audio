@@ -1,5 +1,6 @@
 import { DEFAULT_PATCH, applyPatch, parseCommand } from "./patches.js";
 import { loadMiniCPM, modelCatalog } from "./llm.js";
+import { PATTERNS, patternById, playPattern } from "./tr.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -7,7 +8,8 @@ const state = {
   ctx: null,
   worklet: null,
   sourceNode: null,
-  sourceKind: "pulse",
+  sourceKind: "tr",
+  patternId: PATTERNS[0].id,
   media: null,
   osc: null,
   patch: { ...DEFAULT_PATCH },
@@ -125,11 +127,46 @@ function sineGenerator(ctx) {
   return gain;
 }
 
+function fillPatternSelect() {
+  const sel = $("pattern");
+  sel.innerHTML = "";
+  const groups = { "TR-707": null, "TR-606": null };
+  for (const machine of Object.keys(groups)) {
+    const g = document.createElement("optgroup");
+    g.label = machine;
+    groups[machine] = g;
+    sel.appendChild(g);
+  }
+  for (const p of PATTERNS) {
+    const opt = document.createElement("option");
+    opt.value = p.id;
+    opt.textContent = `${p.title}  (${p.bpm} BPM)`;
+    groups[p.machine].appendChild(opt);
+  }
+  sel.value = state.patternId;
+}
+
+function startPattern(id) {
+  const pattern = patternById(id);
+  state.patternId = pattern.id;
+  $("pattern").value = pattern.id;
+  const src = playPattern(state.ctx, pattern);
+  connectSource(src);
+  setStatus(`source: ${pattern.machine} · ${pattern.title} · ${pattern.bpm} BPM (synthesized, looping)`);
+}
+
 async function setSource(kind) {
   await ensureAudio();
   if (state.ctx.state === "suspended") await state.ctx.resume();
+  if (kind && kind.startsWith("tr:")) {
+    state.sourceKind = "tr";
+    startPattern(kind.slice(3));
+    return;
+  }
   state.sourceKind = kind;
-  if (kind === "pulse") {
+  if (kind === "tr") {
+    startPattern(state.patternId);
+  } else if (kind === "pulse") {
     connectSource(pulseGenerator(state.ctx, 35));
     setStatus("source: synthetic pulse song, 35 ms IPI");
   } else if (kind === "sine") {
@@ -228,6 +265,12 @@ function bindUi() {
     state.patch = applyPatch(state.patch, { shuffleB: $("shuffleB").checked });
     pushPatch();
   });
+  fillPatternSelect();
+  $("src-tr").onclick = () => setSource("tr");
+  $("pattern").addEventListener("change", () => {
+    state.patternId = $("pattern").value;
+    if (state.ctx) setSource("tr");
+  });
   $("src-pulse").onclick = () => setSource("pulse");
   $("src-sine").onclick = () => setSource("sine");
   $("src-mic").onclick = () => setSource("mic");
@@ -276,7 +319,7 @@ async function handleChat(text) {
     return;
   }
   if (!state.llm) {
-    if (parsed.empty) log("sys", "no MiniCPM loaded. try: 'cross couple', 'shuffle A', 'capture tab', 'wet 0.4'");
+    if (parsed.empty) log("sys", "no MiniCPM loaded. try: 'play 707', 'electro', 'shuffle A', 'wet 0.4'");
     return;
   }
   try {
@@ -308,7 +351,7 @@ async function bootLlm(modelId) {
       onProgress: (f) => setStatus(`loading MiniCPM ${(f * 100).toFixed(0)}%`),
     });
     setStatus(state.llm.label + " ready — talk to the patchbay");
-    log("assistant", "MiniCPM is in the tab. Ask me to couple the flies, lesion aLN, or capture a tab.");
+    log("assistant", "MiniCPM is in the tab. Ask me to play a 707 loop, couple the flies, or lesion aLN.");
   } catch (err) {
     log("sys", "could not load MiniCPM: " + (err.message || err) + " — command parser still works.");
     setStatus("MiniCPM unavailable; local commands still work");
@@ -318,4 +361,4 @@ async function bootLlm(modelId) {
 bindUi();
 syncSliders();
 paintMeters();
-setStatus("idle — pick a source. the filter runs in this tab; nothing is uploaded.");
+setStatus("idle — play a 606/707 loop. the filter runs in this tab; nothing is uploaded.");

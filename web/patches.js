@@ -45,7 +45,24 @@ export const TOOLS = [
     parameters: {
       type: "object",
       properties: {
-        source: { type: "string", enum: ["pulse", "sine", "mic", "tab", "file"] },
+        source: {
+          type: "string",
+          enum: [
+            "tr",
+            "tr:707-floor",
+            "tr:707-claps",
+            "tr:707-break",
+            "tr:707-toms",
+            "tr:606-four",
+            "tr:606-electro",
+            "tr:606-busy",
+            "pulse",
+            "sine",
+            "mic",
+            "tab",
+            "file",
+          ],
+        },
       },
       required: ["source"],
     },
@@ -120,6 +137,13 @@ export function parseCommand(text) {
   if (/tab|youtube|capture/.test(t)) source = "tab";
   if (/pulse song|pulse generator/.test(t)) source = "pulse";
   if (/sine song|sine generator/.test(t)) source = "sine";
+  if (/\b707\b|house|four on the floor|play loop/.test(t)) source = "tr:707-floor";
+  if (/clap/.test(t)) source = "tr:707-claps";
+  if (/break/.test(t)) source = "tr:707-break";
+  if (/\btom/.test(t)) source = "tr:707-toms";
+  if (/\b606\b/.test(t) && !/electro|busy|hat/.test(t)) source = "tr:606-four";
+  if (/electro/.test(t)) source = "tr:606-electro";
+  if (/busy hat|busy 606/.test(t)) source = "tr:606-busy";
   const wet = t.match(/wet\s+(\d+(?:\.\d+)?)/);
   if (wet) params.wet = Number(wet[1]) > 1 ? Number(wet[1]) / 100 : Number(wet[1]);
   return { params, source, empty: Object.keys(params).length === 0 && !source };

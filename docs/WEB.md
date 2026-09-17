@@ -24,9 +24,13 @@ mic / tab / file / oscillator
 
 The Hugging Face MiniCPM5-2B WebGPU demos (e.g. [townbox/MiniCPM5-2B-WebGPU-Pi](https://huggingface.co/spaces/townbox/MiniCPM5-2B-WebGPU-Pi)) are the same idea we want for the *patchbay*: a small Llama-architecture model in the tab. MiniCPM5 is a standard `LlamaForCausalLM`, so wllama can load the official GGUF. It is not required for the filter to make sound.
 
-## YouTube
+## Drum loops (default source)
 
-Browsers will not let a page pull `youtube.com` audio (CORS, and YouTube's terms). The working path is **Capture tab** → `getDisplayMedia({ audio: true, video: true })` → the user shares the YouTube tab with audio. Same for Spotify, a DAW, a Zoom call.
+The demo ships seven 16-step grids under `web/tr.js`: four TR-707-style (house floor, offbeat claps, broken kick, tom run) and three TR-606-style (four, electro, busy hats). Voices are synthesized in the tab. They are not Roland ROM samples and not dumped factory presets.
+
+Each pattern is rendered to a looping `AudioBuffer` at its own BPM. Pick one from the menu or say “play 707” / “electro”.
+
+Mic, file, and **Capture tab** remain for live audio. A page still cannot fetch `youtube.com` itself.
 
 ## Two brains
 

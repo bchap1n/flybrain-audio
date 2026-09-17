@@ -21,10 +21,15 @@
       <section class="panel">
         <h2>Source</h2>
         <p class="hint">
-          YouTube is a <em>tab you share</em>, not a URL this page can fetch. Chrome: Capture tab
-          → pick the YouTube tab → enable audio.
+          Bundled TR-606 / TR-707 <em>style</em> loops, synthesized in the tab — not Roland ROM
+          samples. Pick a grid, it loops. Mic / file / tab are still there if you want a live mix.
         </p>
+        <label class="pattern-pick">
+          drum loop
+          <select id="pattern"></select>
+        </label>
         <div class="row">
+          <button id="src-tr" type="button">Play loop</button>
           <button id="src-pulse" type="button">Pulse song</button>
           <button id="src-sine" type="button">Sine song</button>
           <button id="src-mic" type="button">Microphone</button>
@@ -87,7 +92,7 @@
       <section class="panel chat">
         <h2>Talk to the patchbay</h2>
         <p class="hint">
-          Commands work immediately: “cross couple”, “shuffle A”, “lesion aln”, “capture tab”.
+          Commands work immediately: “play 707”, “electro”, “shuffle A”, “lesion aln”.
           MiniCPM5 is optional and stays in this browser. 2B is ~1.56&nbsp;GB; 1B is ~657&nbsp;MB.
         </p>
         <div class="row">
@@ -96,7 +101,7 @@
         </div>
         <div id="log" class="log"></div>
         <form id="chat-form">
-          <input id="chat-input" autocomplete="off" placeholder="couple them, then capture a YouTube tab" />
+          <input id="chat-input" autocomplete="off" placeholder="play 707, then shuffle A" />
           <button type="submit">Send</button>
         </form>
       </section>

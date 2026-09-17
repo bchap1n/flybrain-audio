@@ -102,6 +102,11 @@ label {
   margin: 0.35rem 0;
 }
 
+label.pattern-pick {
+  grid-template-columns: 7.5rem 1fr;
+  margin-bottom: 0.7rem;
+}
+
 label.check {
   display: flex;
   gap: 0.45rem;
